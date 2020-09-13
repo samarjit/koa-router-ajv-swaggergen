@@ -145,7 +145,7 @@ function makeValidator(spec, validator) {
         var isValid = headerValidator(ctx.request.headers);
         if (!isValid) {
           // ctx.throw(400, 'header ' + validator.ajv.errorsText(headerValidator.errors));
-          throwValidationError(headerValidator.errors, 'querystring');
+          throwValidationError(headerValidator.errors, 'header');
         }
       }
     } catch (err) {

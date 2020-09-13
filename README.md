@@ -208,8 +208,12 @@ router.get('/swagger-ui-standalone-preset.js', ctx => {
   ctx.body = fs.createReadStream(`${swaggerUiAssetPath}/swagger-ui-standalone-preset.js`);
 });
 ```
+<<<<<<< HEAD
 ## Testing locally via git
 Git clone the repository.
 Run `npm install`
 You run the `node src\index-test.js` or simply run `npm run dev`. It has a few samples to get started.
 Open browser at (http://localhost:3000/swagger)[http://localhost:3000/swagger]
+=======
+
+>>>>>>> 37d38b744a8e456560c6b8d077a89cf24198b9fe
