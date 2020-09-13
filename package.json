@@ -1,10 +1,10 @@
 {
   "name": "koa-router-ajv-swaggergen",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "koa-router wrapper for adding schema for validation and generates swagger(openapi3) json",
   "author": "Samarjit Samanta",
   "license": "MIT",
-  "main": "src/routewrapper.js",
+  "main": "src/routerwrapper.js",
   "scripts": {
     "dev": "nodemon src/index-test.js",
     "test": "echo \"Error: no test specified\" && exit 1"

@@ -12,17 +12,77 @@ This module does 3 things. This does not reimplement koa-router instead creates 
 You can open this openapi3 json in http://editor.swagger.io to view the document.
 Optionally you can integrate swagger viewer in your application. Follow the index.js to see how it is done. Following snippet shows the main parts.
 
-
-## Usage install this package using npm
+## Quick start Example
 `npm install koa-router-ajv-swaggergen` in your project. 
+Additioally if want to setup swagger viewer
+`npm install -D swagger-ui-dist`
+
+```js
+const Koa = require('koa')
+const Router = require('@koa/router');
+const Myrouter = require('koa-router-ajv-swaggergen');
+const router = new Myrouter(new Router(), 'prefix');
+
+const app = new Koa();
+
+// // requires `npm install -D swagger-ui-dist` to run swagger ui locally, otherwise comment this line
+// Myrouter.setupSwaggerUI(router, 'prefix');
+
+// // pass 'router' for json error response for this router, or pass 'app' for all errors to be converted to json
+// Myrouter.setupJsonErrors(router); 
+
+router.get('/',
+  {
+    schema: {
+      summary: 'Minimal example',
+      description: 'This is a minimal setup',
+      querystring: {
+        type: 'object',
+        required: ['name'],
+        properties: {
+          name: { type: 'string' },
+          excitement: { type: 'integer' }
+        }
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            hello: { type: 'string' }
+          }
+        }
+      }
+    }
+  },
+  (ctx) => {
+    console.log('reqId', ctx.query.name);
+    ctx.body = { hello: ctx.query.name, excitement:  ctx.query.excitement};
+  }
+);
+
+app.use(router.routes());
+
+app.listen(3000, () => {
+  console.log(`server listening on 3000`)
+})
+```
+Open browser http://localhost:3000/prefix/openapi.json
+If you have setup swagger ui viewer open in browser http://localhost:3000/swagger
+
+![openapi json](docs/openapijson.jpg)
+![swagger ui](docs/swagger.jpg)
+![swagger error](docs/validationerror.jpg)
+
+## Some more details
+
 
 ```js
 const Router = require('@koa/router');
 const Myrouter = require('../../routerwrapper');
-const router = new Myrouter(new Router(), 'prefix'); // prefix is optional but nice to have if you have multiple routes
+const router = new Myrouter(new Router(), 'prefix'); // prefix is required to access different routes
 ```
 
-Now you can use the `router` object like you would use koa-router. Optionally you can add schema which will start showing this route in apidoc and do schema validation
+Now you can use the `router` object like you would use koa-router i.e. even without a schema. But you can add schema which will start showing this route in swagger json and do schema validation.
 
 ```js
 router.get('/auth/get-user-profile', {
@@ -95,9 +155,11 @@ const bodyJsonSchema = {
   }
 }
 
+// This is less verbose way of defining schema which works for querystring and params 
+// You can choose more verbose way of defining schema in the ajv way
 const queryStringJsonSchema = {
-  name: { type: 'string' },
-  excitement: { type: 'boolean' }
+  name: { type: 'string' }, // add required: true if you want to make it required
+  excitement: { type: 'boolean' } // query strings are normally strings but it is coerced to boolean and then validated
 }
 
 const paramsJsonSchema = {
@@ -125,59 +187,6 @@ router.post('/the/url/:par1/:par2', { schema }, (ctx) => {
 })
 ```
 
-### Complete Example
-
-```js
-const koa = require('koa')
-const Router = require('@koa/router');
-const Myrouter = require('koa-router-ajv-swaggergen');
-const router = new Myrouter(new Router(), 'prefix');
-
-const app = new koa();
-
-// requires `npm install -D swagger-ui-dist` to run swagger ui locally, otherwise comment this line
-Myrouter.setupSwaggerUI(router, 'prefix'); 
-// pass 'router' for json error response for this router, or pass 'app' for all errors as json
-Myrouter.setupJsonErrors(router); 
-
-router.get('/',
-  {
-    schema: {
-      summary: 'Minimal example',
-      description: 'This is a minimal setup',
-      querystring: {
-        type: 'object',
-        required: ['name'],
-        properties: {
-          name: { type: 'string' },
-          excitement: { type: 'integer' }
-        }
-      },
-      response: {
-        200: {
-          type: 'object',
-          properties: {
-            hello: { type: 'string' }
-          }
-        }
-      }
-    }
-  },
-  (ctx) => {
-    console.log('reqId', ctx.query.name);
-    ctx.body = { hello: 'world' };
-  }
-);
-
-app.use(router.routes());
-
-app.listen(3000, () => {
-  console.log(`server listening on 3000`)
-})
-```
-Open browser http://localhost:3000/prefix/openapi.json
-If you have setup swagger ui viewer open in browser http://localhost:3000/swagger
-
 ## Integrating swagger viewer
 
 Integrating swagger viewer is trivial. Get the static distribution instead of serving static directory from node_modules, serve it and rewrite content as required. I found this is the easiest way to mount into a different directory other than root. Swagger js and css'es do not understand relative paths 
@@ -185,6 +194,9 @@ Integrating swagger viewer is trivial. Get the static distribution instead of se
 ```
 npm install -D swagger-ui-dist
 ```
+Easy way is to use a provided helper method. `Myrouter.setupSwaggerUI(router, 'prefix');`
+
+Here is what this helper function essentially does. 
 
 ```javascript
 const swaggerUiAssetPath = require("swagger-ui-dist").getAbsoluteFSPath();
@@ -192,7 +204,7 @@ const swaggerUiAssetPath = require("swagger-ui-dist").getAbsoluteFSPath();
 router.get('/swagger', ctx => {
   ctx.type = 'html';
   let fileAsString = fs.readFileSync(`${swaggerUiAssetPath}/index.html`);//
-  ctx.body = String(fileAsString).replace(/url\: \"https.*/m, `url: "openapi.json",`);
+  ctx.body = String(fileAsString).replace(/url\: \"https.*/m, `url: "prefix/openapi.json",`);
 });
 // Following static assets do not recognize relative paths.
 router.get('/swagger-ui.css', ctx => {
@@ -208,8 +220,9 @@ router.get('/swagger-ui-standalone-preset.js', ctx => {
   ctx.body = fs.createReadStream(`${swaggerUiAssetPath}/swagger-ui-standalone-preset.js`);
 });
 ```
-## Testing locally via git
+
+## For developers of this library
 Git clone the repository.
 Run `npm install`
 You run the `node src\index-test.js` or simply run `npm run dev`. It has a few samples to get started.
-Open browser at (http://localhost:3000/swagger)[http://localhost:3000/swagger]
+Open browser at [http://localhost:3000/swagger](http://localhost:3000/swagger)

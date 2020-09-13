@@ -164,6 +164,11 @@ function throwValidationError(errors, prefix) {
       const msg = `${e.message}${e.params && e.params.allowedValues ? ' ' + e.params.allowedValues : ''}`;
       details[key] = msg;
       return `[${key}] ${msg}`;
+    } else if (e.keyword === 'required') {
+      const key = e.params && e.params.missingProperty;
+      const msg = `${e.message}${e.params && e.params.missingProperty ? ' ' + e.params.missingProperty : ''}`;
+      details[key] = e.keyword;
+      return `[${key}] ${msg}`;
     } else {
       return e.message;
     }
