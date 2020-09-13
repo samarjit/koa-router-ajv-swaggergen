@@ -2,8 +2,8 @@ const fs = require('fs');
 const qs = require('qs');
 const extend = require('extend');
 // const fetch = require('node-fetch');
-const _ = require('lodash')
-const debug = require('debug')('koa-mapper');
+// const _ = require('lodash')
+// const debug = require('debug')('koa-mapper');
 const Ref = require('json-schema-resolver')
 
 exports.safeDecodeURIComponent = safeDecodeURIComponent;
@@ -519,7 +519,7 @@ function transformSchemaOld(opts) {
   // query-path start
   if (params) {
     let indx = 0;
-    _.forEach(params, (value, key) => {
+    require('lodash').forEach(params, (value, key) => {
       const name = String(key);
       if (value.in !== 'path') {
         return;
