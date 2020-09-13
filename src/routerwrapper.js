@@ -177,7 +177,7 @@ function throwValidationError(errors, prefix) {
   err.status = 400;
   err.statusCode = 400;
   err.expose = true;
-  err.validationErrors = details;
+  err.validationErrors = { [prefix]: details };
   throw err;
 }
 

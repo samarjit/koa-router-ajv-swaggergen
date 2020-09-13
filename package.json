@@ -24,10 +24,10 @@
     "koa": "^2.13.0",
     "koa-bodyparser": "^4.3.0",
     "koa-logger": "^3.2.1",
-    "lodash": "^4.17.20",
     "path-to-regexp": "^6.1.0"
   },
   "devDependencies": {
+    "lodash": "^4.17.20",
     "@koa/cors": "^3.1.0",
     "nodemon": "^2.0.4",
     "swagger-ui-dist": "^3.32.4"
