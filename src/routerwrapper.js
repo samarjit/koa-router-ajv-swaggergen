@@ -1,0 +1,219 @@
+const delegate = require('delegates');
+const flatten = require('flatten');
+const clone = require('clone');
+const Validator = require('./schemavalidator/validator');
+const extend = require('extend');
+const { transformSchema, propsToSchema } = require('./schemavalidator/utils');
+
+function Router(koaRouter, prefix) {
+  if (!(this instanceof Router)) {
+    return new Router();
+  }
+  this.swaggerPrefix = prefix;
+  this.internalRoutes = [];
+  this.router = koaRouter;
+  this.validator = new Validator({});
+  this.rootDoc = {
+    openapi: '3.0.2',
+    info: {
+      "title": "Test swagger",
+      "description": "testing the swagger api",
+      "version": "0.1.0"
+    },
+    tags: [],
+    servers: [],
+  };
+
+  const router = this.router;
+  this._addRoute = function addRoute(spec) {
+    this.internalRoutes.push(spec);
+    if (spec.schema) {
+      // this.validator.addSchema(spec.path, spec.schema);
+    }
+    const preHandlers = spec.pre ? flatten(spec.pre) : [];
+    const handlers = flatten(spec.handler);
+    const specExposer = makeSpecExposer(spec);
+    const validator = makeValidator(spec, this.validator);
+    const args = [
+      spec.path
+    ].concat(preHandlers, [
+      specExposer,
+      validator ? validator : (ctx, next) => next(),
+    ], handlers);
+    spec.method = spec.method.split(' ')
+    spec.method.forEach((method) => {
+      router[method].apply(router, args);
+    });
+  }
+
+  this.apiMiddleware = () => {
+    return (ctx) => {
+      const { rootDoc, validator } = this;
+      const { schemas } = validator;
+      const paths = {};
+      this.internalRoutes.forEach(stk => {
+        if (stk.schema) {
+          extend(true, paths, transformSchema(stk, schemas));
+        }
+      })
+      // stack.forEach((layer) => {
+      //   extend(true, paths, layer.getPathItem());
+      // });
+      ctx.body = { ...rootDoc, paths, components: { schemas } };
+    };
+  }
+
+  router.get(`/${this.swaggerPrefix}/openapi.json`, this.apiMiddleware());
+  // this.middleware = function middleware() {
+  //   return this.router.routes();
+  // }
+  this.routes = function middleware() {
+    return this.router.routes();
+  }
+  this.addSchema = function (name, props, options) {
+    this.validator.addSchema(name, props, options);
+    return this;
+  }
+}
+
+/**
+ * Exposes route spec
+ * @param {Object} spec The route spec
+ * @returns {async Function} Middleware
+ * @api private
+ */
+function makeSpecExposer(spec) {
+  const defn = clone(spec);
+  return async function specExposer(ctx, next) {
+    ctx.state.route = defn;
+    await next();
+  };
+}
+
+function toSchemaObj(op) {
+  return (op.type || op.$ref) ? op : { type: 'object', properties: op }
+}
+
+function makeValidator(spec, validator) {
+  let bodyValidator, paramsValidator, queryValidator, headerValidator;
+  try {
+    if (spec.schema && spec.schema.body) {
+      bodyValidator = validator.compile(spec.schema.body);
+    }
+    if (spec.schema && spec.schema.params) {
+      paramsValidator = validator.compile(propsToSchema(spec.schema.params));
+    }
+    if (spec.schema && spec.schema.querystring) {
+      queryValidator = validator.compile(propsToSchema(spec.schema.querystring));
+    }
+    if (spec.schema && spec.schema.headers) {
+      headerValidator = validator.compile(spec.schema.headers);
+    }
+
+    if (!spec.schema) {
+      return;
+    }
+  } catch (e) {
+    console.log(e, spec.schema)
+    return;
+  }
+  return async (ctx, next) => {
+    try {
+      console.log(spec)
+      if (bodyValidator) {
+        var isValid = bodyValidator(ctx.request.body);
+        if (!isValid) {
+          // ctx.throw(400, 'request body ' + validator.ajv.errorsText(bodyValidator.errors));
+          throwValidationError(bodyValidator.errors, 'request body');
+        }
+      }
+      if (paramsValidator) {
+        var isValid = paramsValidator(ctx.params);
+        if (!isValid) {
+          // ctx.throw(400, 'params ' + validator.ajv.errorsText(paramsValidator.errors));
+          throwValidationError(paramsValidator.errors, 'params')
+        }
+      }
+      if (queryValidator) {
+        var isValid = queryValidator(ctx.request.query);
+        if (!isValid) {
+          // ctx.throw(400, 'query ' + validator.ajv.errorsText(queryValidator.errors));
+          throwValidationError(queryValidator.errors, 'query');
+        }
+      }
+      if (headerValidator) {
+        var isValid = headerValidator(ctx.request.headers);
+        if (!isValid) {
+          // ctx.throw(400, 'header ' + validator.ajv.errorsText(headerValidator.errors));
+          throwValidationError(headerValidator.errors, 'query');
+        }
+      }
+    } catch (err) {
+      console.log(err)
+      ctx.throw(400, err)
+    }
+    await next()
+  }
+}
+
+function throwValidationError(errors, prefix) {
+  const details = {};
+  const message = errors.map((e) => {
+    if (e.dataPath) {
+      const key = e.dataPath.replace(/^./, '');
+      const msg = `${e.message}${e.params && e.params.allowedValues ? ' ' + e.params.allowedValues : ''}`;
+      details[key] = msg;
+      return `[${key}] ${msg}`;
+    } else {
+      return e.message;
+    }
+  }).join('\n');
+  const err = new Error(`${prefix} ${message}`);
+  err.status = 400;
+  err.statusCode = 400;
+  err.expose = true;
+  err.validationErrors = details;
+  throw err;
+}
+
+
+delegate(Router.prototype, 'router')
+  .method('prefix')
+  .method('use')
+  .method('param')
+
+const methods = ['get', 'put', 'post', 'del'];
+methods.forEach((method) => {
+  method = method.toLowerCase();
+
+  Router.prototype[method] = function (path) {
+    // path, handler1, handler2, ...
+    // path, config, handler1
+    // path, config, handler1, handler2, ...
+    // path, config, [handler1, handler2], handler3, ...
+
+    let fns;
+    let config;
+
+    if (typeof arguments[1] === 'function' || Array.isArray(arguments[1])) {
+      config = {};
+      fns = Array.prototype.slice.call(arguments, 1);
+    } else if (typeof arguments[1] === 'object') {
+      config = arguments[1];
+      fns = Array.prototype.slice.call(arguments, 2);
+    }
+
+    const spec = {
+      path: path,
+      method: method,
+      handler: fns
+    };
+
+    Object.assign(spec, config);
+
+    this._addRoute(spec);
+    return this;
+  };
+});
+
+module.exports = Router;
