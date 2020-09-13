@@ -11,8 +11,6 @@ const cors = require('@koa/cors');
 const bodyParser = require('koa-bodyparser');
 const fs = require('fs')
 
-var mount = require('koa-mount');
-var serve = require('koa-static');
 const swaggerUiAssetPath = require("swagger-ui-dist").getAbsoluteFSPath()
 
 // Koa-router won't execute a middleware if there's no matching route.
@@ -29,7 +27,7 @@ console.log(swaggerUiAssetPath);
 router.get('/swagger', ctx => {
   ctx.type = 'html';
   let fileAsString = fs.readFileSync(`${swaggerUiAssetPath}\\index.html`);//
-  ctx.body = String(fileAsString).replace(/url\: \"https.*/m, 'url: "http://localhost:3000/prefix/openapi.json",');
+  ctx.body = String(fileAsString).replace(/url\: \"https.*/m, 'url: "prefix/openapi.json",');
 });
 router.get('/swagger-ui.css', ctx => {
   ctx.type = "text/css"

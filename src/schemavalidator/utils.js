@@ -161,6 +161,9 @@ function propsToSchema(props, options = {}) {
   if (props && typeof props === 'string') {
     return { $ref: ref(props) };
   }
+  if (props && props.type) {
+    return props;
+  }
   if (props && Object.keys(props).length) {
     const properties = {};
     const requiredArr = options.required || [];

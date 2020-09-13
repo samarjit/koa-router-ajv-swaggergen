@@ -119,7 +119,7 @@ function makeValidator(spec, validator) {
   }
   return async (ctx, next) => {
     try {
-      console.log(spec)
+      // console.log(spec)
       if (bodyValidator) {
         var isValid = bodyValidator(ctx.request.body);
         if (!isValid) {
@@ -131,21 +131,21 @@ function makeValidator(spec, validator) {
         var isValid = paramsValidator(ctx.params);
         if (!isValid) {
           // ctx.throw(400, 'params ' + validator.ajv.errorsText(paramsValidator.errors));
-          throwValidationError(paramsValidator.errors, 'params')
+          throwValidationError(paramsValidator.errors, 'path params')
         }
       }
       if (queryValidator) {
         var isValid = queryValidator(ctx.request.query);
         if (!isValid) {
           // ctx.throw(400, 'query ' + validator.ajv.errorsText(queryValidator.errors));
-          throwValidationError(queryValidator.errors, 'query');
+          throwValidationError(queryValidator.errors, 'querystring');
         }
       }
       if (headerValidator) {
         var isValid = headerValidator(ctx.request.headers);
         if (!isValid) {
           // ctx.throw(400, 'header ' + validator.ajv.errorsText(headerValidator.errors));
-          throwValidationError(headerValidator.errors, 'query');
+          throwValidationError(headerValidator.errors, 'querystring');
         }
       }
     } catch (err) {
@@ -216,4 +216,42 @@ methods.forEach((method) => {
   };
 });
 
+Router.setupSwaggerUI = (router, defaultPrefix) => {
+  const fs = require('fs')
+  const swaggerUiAssetPath = require("swagger-ui-dist").getAbsoluteFSPath();
+  // Mount in your favourite path eg. '/swagger'
+  router.get('/swagger', ctx => {
+    ctx.type = 'html';
+    let fileAsString = fs.readFileSync(`${swaggerUiAssetPath}/index.html`);//
+    ctx.body = String(fileAsString).replace(/url\: \"https.*/m, `url: "${defaultPrefix}/openapi.json",`);
+  });
+  // Following static assets do not recognize relative paths.
+  router.get('/swagger-ui.css', ctx => {
+    ctx.type = "text/css"
+    ctx.body = fs.createReadStream(`${swaggerUiAssetPath}/swagger-ui.css`);
+  });
+  router.get('/swagger-ui-bundle.js', ctx => {
+    ctx.type = "application/javascript"
+    ctx.body = fs.createReadStream(`${swaggerUiAssetPath}/swagger-ui-bundle.js`);
+  });
+  router.get('/swagger-ui-standalone-preset.js', ctx => {
+    ctx.type = "application/javascript"
+    ctx.body = fs.createReadStream(`${swaggerUiAssetPath}/swagger-ui-standalone-preset.js`);
+  });
+}
+Router.setupJsonErrors = (app) => {
+  app.use((ctx, next) => {
+    return next().catch(err => {
+      const { statusCode, message, validationErrors } = err;
+      ctx.type = 'json';
+      ctx.status = statusCode || 500;
+      ctx.body = {
+        status: 'error',
+        message,
+        validationErrors,
+      };
+      ctx.app.emit('error', err, ctx);
+    });
+  });
+}
 module.exports = Router;

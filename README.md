@@ -12,7 +12,9 @@ This module does 3 things. This does not reimplement koa-router instead creates 
 You can open this openapi3 json in http://editor.swagger.io to view the document.
 Optionally you can integrate swagger viewer in your application. Follow the index.js to see how it is done. Following snippet shows the main parts.
 
-## Usage
+
+## Usage install this package using npm
+`npm install koa-router-ajv-swaggergen` in your project. 
 
 ```js
 const Router = require('@koa/router');
@@ -123,6 +125,59 @@ router.post('/the/url/:par1/:par2', { schema }, (ctx) => {
 })
 ```
 
+### Complete Example
+
+```js
+const koa = require('koa')
+const Router = require('@koa/router');
+const Myrouter = require('koa-router-ajv-swaggergen');
+const router = new Myrouter(new Router(), 'prefix');
+
+const app = new koa();
+
+// requires `npm install -D swagger-ui-dist` to run swagger ui locally, otherwise comment this line
+Myrouter.setupSwaggerUI(router, 'prefix'); 
+// pass 'router' for json error response for this router, or pass 'app' for all errors as json
+Myrouter.setupJsonErrors(router); 
+
+router.get('/',
+  {
+    schema: {
+      summary: 'Minimal example',
+      description: 'This is a minimal setup',
+      querystring: {
+        type: 'object',
+        required: ['name'],
+        properties: {
+          name: { type: 'string' },
+          excitement: { type: 'integer' }
+        }
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            hello: { type: 'string' }
+          }
+        }
+      }
+    }
+  },
+  (ctx) => {
+    console.log('reqId', ctx.query.name);
+    ctx.body = { hello: 'world' };
+  }
+);
+
+app.use(router.routes());
+
+app.listen(3000, () => {
+  console.log(`server listening on 3000`)
+})
+```
+Open browser http://localhost:3000/prefix/openapi.json
+If you have setup swagger ui viewer open in browser http://localhost:3000/swagger
+
 ## Integrating swagger viewer
 
 Integrating swagger viewer is trivial. Get the static distribution instead of serving static directory from node_modules, serve it and rewrite content as required. I found this is the easiest way to mount into a different directory other than root. Swagger js and css'es do not understand relative paths 
@@ -153,4 +208,8 @@ router.get('/swagger-ui-standalone-preset.js', ctx => {
   ctx.body = fs.createReadStream(`${swaggerUiAssetPath}/swagger-ui-standalone-preset.js`);
 });
 ```
-
+## Testing locally via git
+Git clone the repository.
+Run `npm install`
+You run the `node src\index-test.js` or simply run `npm run dev`. It has a few samples to get started.
+Open browser at (http://localhost:3000/swagger)[http://localhost:3000/swagger]
