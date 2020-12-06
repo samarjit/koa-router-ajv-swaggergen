@@ -13,9 +13,18 @@ You can open this openapi3 json in http://editor.swagger.io to view the document
 Optionally you can integrate swagger viewer in your application. Follow the index.js to see how it is done. Following snippet shows the main parts.
 
 ## Quick start Example
-`npm install koa-router-ajv-swaggergen` in your project. 
+
+Create a new folder test. Run `npm init -y` inside the new folder.
+Run `npm install koa-router-ajv-swaggergen` in your project. 
 Additioally if want to setup swagger viewer
-`npm install -D swagger-ui-dist`
+Run `npm install -D swagger-ui-dist`
+
+Install peer dependencies if not already part of your project
+Run `npm install koa @koa/router ajv delegates extend flatten formidable json-schema-resolver qs clone`
+
+> You can replace npm with yarn commands above if you prefer yarn. Yarn 2 is also supported which will not create node_modules.
+
+Create index.js file with the below content
 
 ```js
 const Koa = require('koa')
@@ -26,10 +35,10 @@ const router = new Myrouter(new Router(), 'prefix');
 const app = new Koa();
 
 // // requires `npm install -D swagger-ui-dist` to run swagger ui locally, otherwise comment this line
-// Myrouter.setupSwaggerUI(router, 'prefix');
+Myrouter.setupSwaggerUI(router, 'prefix');
 
 // // pass 'router' for json error response for this router, or pass 'app' for all errors to be converted to json
-// Myrouter.setupJsonErrors(router); 
+Myrouter.setupJsonErrors(router); 
 
 router.get('/',
   {
@@ -66,6 +75,16 @@ app.listen(3000, () => {
   console.log(`server listening on 3000`)
 })
 ```
+
+If you are using npm. That is your node_modules folder got created. Then you cna run `node index.js`
+or,
+If you are using yarn 2 add scripts. Run project `yarn dev`
+```json
+"scripts": {
+  "dev": "node index.js"
+}
+```
+
 Open browser http://localhost:3000/prefix/openapi.json
 If you have setup swagger ui viewer open in browser http://localhost:3000/swagger
 
@@ -199,6 +218,8 @@ Easy way is to use a provided helper method. `Myrouter.setupSwaggerUI(router, 'p
 Here is what this helper function essentially does. 
 
 ```javascript
+//** This works for npm only which has package.json. For yarn2 refer implementation in src/routerwrapper.js **//
+
 const swaggerUiAssetPath = require("swagger-ui-dist").getAbsoluteFSPath();
 // Mount in your favourite path eg. '/swagger'
 router.get('/swagger', ctx => {
@@ -226,3 +247,10 @@ Git clone the repository.
 Run `npm install`
 You run the `node src\index-test.js` or simply run `npm run dev`. It has a few samples to get started.
 Open browser at [http://localhost:3000/swagger](http://localhost:3000/swagger)
+
+
+## Release Notes
+
+2020-12-06: 
+  * Moved dependencies to peerDependencies so that client projects are fee to choose their versions. Unfortunately this also adds burden on developer to maintain all the dependencies. `npm install koa @koa/router ajv delegates extend flatten formidable json-schema-resolver qs clone`
+  * Added support for yarn 2/berry
