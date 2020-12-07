@@ -23,7 +23,7 @@ console.log(swaggerUiAssetPath);
 
 //   fs.copyFileSync(`${swaggerUiAssetPath}\\${childItemName}`, './temp-public/');
 // });
-
+Myrouter.setupJsonErrors(router);
 router.get('/swagger', ctx => {
   ctx.type = 'html';
   let fileAsString = fs.readFileSync(`${swaggerUiAssetPath}\\index.html`);//
@@ -88,7 +88,7 @@ router.addSchema('commonSchema', {
   // $id: 'commonSchema',
   type: 'object',
   properties: {
-    hello: { type: 'string' }
+    hello: { type: 'number' }
   }
 })
 
@@ -172,7 +172,7 @@ router.post('/pet/:petId', {
     },
     body: {
       name: {
-        type: 'string',
+        type: 'number',
         description: 'Updated name of the pet'
       },
       status: {
@@ -184,7 +184,8 @@ router.post('/pet/:petId', {
       '405': { description: 'Invalid input' }
     }
   }
-}, (ctx) => { ctx.body = {}; });
+}, [(ctx, next) => { ctx.body = { x: 'y' }; next(); },
+(ctx) => { ctx.body = { new: 'body' }; }]);
 
 router.del('/pet/:petId', {
   schema: {
@@ -286,10 +287,16 @@ router.get('/pet/findByTags', {
   }
 }, (ctx) => { ctx.body = [{}]; });
 
+var posts = new Router();
+
+posts.get('/', (ctx, next) => { ctx.body = '/'; });
+posts.get('/:pid', (ctx, next) => { ctx.body = '/:pid'; });
+router.use('/forums/:fid/posts', posts.routes(), posts.allowedMethods());
+
 
 app
   .use(router.routes())
-// .use(router.allowedMethods()); //@koa/router
+  .use(router.allowedMethods()); //@koa/router
 
 console.log(router)
 

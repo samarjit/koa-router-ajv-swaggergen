@@ -1,9 +1,16 @@
-const delegate = require('delegates');
-const flatten = require('flatten');
-const clone = require('clone');
+// const delegate = require('delegates');
+// const flatten = require('flatten');
+// const clone = require('clone');
 const Validator = require('./schemavalidator/validator');
-const extend = require('extend');
+const extend = require('./schemavalidator/utils').extend;
 const { transformSchema, propsToSchema } = require('./schemavalidator/utils');
+
+const clone = items =>
+  items.map(item => (Array.isArray(item) ? clone(item) : item));
+
+const flatten = (arr) => Array.isArray(arr)
+  ? arr.reduce((a, b) => a.concat(flatten(b)), [])
+  : [arr];
 
 function Router(koaRouter, prefix) {
   if (!(this instanceof Router)) {
@@ -74,7 +81,24 @@ function Router(koaRouter, prefix) {
     this.validator.addSchema(name, props, options);
     return this;
   }
+
+  this.use = (...x) => this.router.use.apply(this.router, x);
+  this.prefix = (...x) => this.router.prefix.apply(this.router, x);
+  this.param = (...x) => this.router.param.apply(this.router, x);
+  this.allowedMethods = (...x) => this.router.allowedMethods.apply(this.router, x);
 }
+
+
+// delegate(Router.prototype, 'router')
+// .method('prefix')
+// .method('use')
+// .method('param')
+// .method('allowedMethods')
+
+// Router.prototype.use = function () {
+//   console.log('this.router', this.router)
+//   this.router.use.apply(this.router, arguments);
+// }
 
 /**
  * Exposes route spec
@@ -83,7 +107,7 @@ function Router(koaRouter, prefix) {
  * @api private
  */
 function makeSpecExposer(spec) {
-  const defn = clone(spec);
+  const defn = Object.assign({}, spec);
   return async function specExposer(ctx, next) {
     ctx.state.route = defn;
     await next();
@@ -98,7 +122,7 @@ function makeValidator(spec, validator) {
   let bodyValidator, paramsValidator, queryValidator, headerValidator;
   try {
     if (spec.schema && spec.schema.body) {
-      bodyValidator = validator.compile(spec.schema.body);
+      bodyValidator = validator.compile(propsToSchema(spec.schema.body));
     }
     if (spec.schema && spec.schema.params) {
       paramsValidator = validator.compile(propsToSchema(spec.schema.params));
@@ -107,7 +131,7 @@ function makeValidator(spec, validator) {
       queryValidator = validator.compile(propsToSchema(spec.schema.querystring));
     }
     if (spec.schema && spec.schema.headers) {
-      headerValidator = validator.compile(spec.schema.headers);
+      headerValidator = validator.compile(propsToSchema(spec.schema.headers));
     }
 
     if (!spec.schema) {
@@ -180,12 +204,6 @@ function throwValidationError(errors, prefix) {
   err.validationErrors = { [prefix]: details };
   throw err;
 }
-
-
-delegate(Router.prototype, 'router')
-  .method('prefix')
-  .method('use')
-  .method('param')
 
 const methods = ['get', 'put', 'post', 'del'];
 methods.forEach((method) => {

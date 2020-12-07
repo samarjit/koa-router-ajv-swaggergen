@@ -20,7 +20,7 @@ Additioally if want to setup swagger viewer
 Run `npm install -D swagger-ui-dist`
 
 Install peer dependencies if not already part of your project
-Run `npm install koa @koa/router ajv delegates extend flatten formidable json-schema-resolver qs clone`
+Run `npm install koa @koa/router ajv formidable json-schema-resolver qs`
 
 > You can replace npm with yarn commands above if you prefer yarn. Yarn 2 is also supported which will not create node_modules.
 
@@ -254,3 +254,6 @@ Open browser at [http://localhost:3000/swagger](http://localhost:3000/swagger)
 2020-12-06: 
   * Moved dependencies to peerDependencies so that client projects are fee to choose their versions. Unfortunately this also adds burden on developer to maintain all the dependencies. `npm install koa @koa/router ajv delegates extend flatten formidable json-schema-resolver qs clone`
   * Added support for yarn 2/berry
+  * Removed dependencies flatten, clone, extend, delegates
+  * Added parsing body without `.type`
+  * Fixed validation with schema reference as fullpath

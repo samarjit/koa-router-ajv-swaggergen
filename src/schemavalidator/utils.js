@@ -1,10 +1,22 @@
 const fs = require('fs');
 const qs = require('qs');
-const extend = require('extend');
+
 // const fetch = require('node-fetch');
 // const _ = require('lodash')
 // const debug = require('debug')('koa-mapper');
 const Ref = require('json-schema-resolver')
+
+// const extend = require('extend');
+exports.extend = extend;
+// This might be error prone solution
+function extend(unused, current, updates) {
+  for (key of Object.keys(updates)) {
+    if (!current.hasOwnProperty(key) || typeof updates[key] !== 'object') current[key] = updates[key];
+    else if (current[key] instanceof Array && updates[key] instanceof Array) current[key] = current[key].concat(updates[key])
+    else extend('', current[key], updates[key]);
+  }
+  return current;
+}
 
 exports.safeDecodeURIComponent = safeDecodeURIComponent;
 function safeDecodeURIComponent(text) {
@@ -161,6 +173,9 @@ function propsToSchema(props, options = {}) {
   if (props && typeof props === 'string') {
     return { $ref: ref(props) };
   }
+  if (props && props.$ref) {
+    return props;
+  }
   if (props && props.type) {
     return props;
   }
@@ -227,7 +242,11 @@ function transformSchema(opts, componentSchemas) {
   const methods = typeof opts.method === 'string' ? [opts.method] : opts.method
 
   for (var method of methods) {
-    swaggerRoute[method.toLowerCase()] = swaggerMethod
+    let methodWithDelete = method.toLowerCase();
+    if (methodWithDelete === 'del') {
+      methodWithDelete = 'delete'
+    }
+    swaggerRoute[methodWithDelete] = swaggerMethod
   }
 
   if (schema) {
