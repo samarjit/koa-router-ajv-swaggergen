@@ -256,4 +256,5 @@ Open browser at [http://localhost:3000/swagger](http://localhost:3000/swagger)
   * Added support for yarn 2/berry
   * Removed dependencies flatten, clone, extend, delegates
   * Added parsing body without `.type`
-  * Fixed validation with schema reference as fullpath
+  * Fixed validation with schema reference as full-path
+  * Fixed delete method handling so that it appears in swagger
