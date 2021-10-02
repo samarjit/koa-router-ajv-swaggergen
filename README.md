@@ -261,6 +261,7 @@ Open browser at [http://localhost:3000/swagger/](http://localhost:3000/swagger/)
   * Improved validation schema generation for type shorthand `{prop: {type: 'array<string>'}}`, same can be represented in other formats like `{prop: schema: transformType('array<integer>')}` or  `{prop: schema: { type: 'array', items: { type: 'integer' } } }`
   * changed swagger url from http://localhost:3000/swagger to http://localhost:3000/swagger/. Note the trailing slash. 
   * New server path for openapi.json, there are now served under 'swagger' context path. 'http://localhost:3000/swagger/<prefix>/openapi.json. Previously same url would have been http://localhost:3000/<prefix>/openapi.json
+
 2020-12-06: 
   * Moved dependencies to peerDependencies so that client projects are fee to choose their versions. Unfortunately this also adds burden on developer to maintain all the dependencies. `npm install koa @koa/router ajv delegates extend flatten formidable json-schema-resolver qs clone`
   * Added support for yarn 2/berry
