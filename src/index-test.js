@@ -24,23 +24,7 @@ console.log(swaggerUiAssetPath);
 //   fs.copyFileSync(`${swaggerUiAssetPath}\\${childItemName}`, './temp-public/');
 // });
 Myrouter.setupJsonErrors(router);
-router.get('/swagger', ctx => {
-  ctx.type = 'html';
-  let fileAsString = fs.readFileSync(`${swaggerUiAssetPath}\\index.html`);//
-  ctx.body = String(fileAsString).replace(/url\: \"https.*/m, 'url: "prefix/openapi.json",');
-});
-router.get('/swagger-ui.css', ctx => {
-  ctx.type = "text/css";
-  ctx.body = fs.readFileSync(require.resolve("swagger-ui-dist/swagger-ui.css")); // fs.createReadStream(`${swaggerUiAssetPath}\\swagger-ui.css`);
-});
-router.get('/swagger-ui-bundle.js', ctx => {
-  ctx.type = "application/javascript"
-  ctx.body = fs.readFileSync(require.resolve("swagger-ui-dist/swagger-ui-bundle.js")); // fs.createReadStream(`${swaggerUiAssetPath}\\swagger-ui-bundle.js`);
-});
-router.get('/swagger-ui-standalone-preset.js', ctx => {
-  ctx.type = "application/javascript"
-  ctx.body = fs.readFileSync(require.resolve("swagger-ui-dist/swagger-ui-standalone-preset.js")); //  fs.createReadStream(`${swaggerUiAssetPath}\\swagger-ui-standalone-preset.js`);
-});
+Myrouter.setupSwaggerUI(router, 'prefix');
 
 router.use('/', async (ctx, next) => {
   console.log('middle req set');
@@ -273,9 +257,9 @@ router.get('/pet/findByTags', {
         // schema auto generate
         // schema: transformType('array<integer>'),
         // Long format
-        schema: { type: 'array', items: { type: 'integer' } },
+        // schema: { type: 'array', items: { type: 'integer' } },
         // shorthand type: 'array<integer>'
-        // type: 'array<integer>',
+        type: 'array<integer>',
         required: true,
         explode: true,
         description: 'Tags to filter by'

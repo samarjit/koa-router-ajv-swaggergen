@@ -70,7 +70,7 @@ function Router(koaRouter, prefix) {
     };
   }
 
-  router.get(`/${this.swaggerPrefix}/openapi.json`, this.apiMiddleware());
+  router.get(`/swagger/${this.swaggerPrefix}/openapi.json`, this.apiMiddleware());
   // this.middleware = function middleware() {
   //   return this.router.routes();
   // }
@@ -254,15 +254,15 @@ Router.setupSwaggerUI = (router, defaultPrefix) => {
     ctx.body = String(fileAsString).replace(/url\: \"https.*/m, `url: "${defaultPrefix}/openapi.json",`);
   });
   // Following static assets do not recognize relative paths.
-  router.get('/swagger-ui.css', ctx => {
+  router.get('/swagger/swagger-ui.css', ctx => {
     ctx.type = "text/css";
     ctx.body = fs.readFileSync(require.resolve("swagger-ui-dist/swagger-ui.css")); // fs.createReadStream(`${swaggerUiAssetPath}\\swagger-ui.css`);
   });
-  router.get('/swagger-ui-bundle.js', ctx => {
+  router.get('/swagger/swagger-ui-bundle.js', ctx => {
     ctx.type = "application/javascript"
     ctx.body = fs.readFileSync(require.resolve("swagger-ui-dist/swagger-ui-bundle.js")); // fs.createReadStream(`${swaggerUiAssetPath}\\swagger-ui-bundle.js`);
   });
-  router.get('/swagger-ui-standalone-preset.js', ctx => {
+  router.get('/swagger/swagger-ui-standalone-preset.js', ctx => {
     ctx.type = "application/javascript"
     ctx.body = fs.readFileSync(require.resolve("swagger-ui-dist/swagger-ui-standalone-preset.js")); //  fs.createReadStream(`${swaggerUiAssetPath}\\swagger-ui-standalone-preset.js`);
   });
