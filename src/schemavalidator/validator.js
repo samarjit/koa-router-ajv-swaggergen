@@ -19,11 +19,20 @@ class Validator {
     this.ajv = new Ajv({
       coerceTypes: 'array',
       useDefaults: true,
-      unknownFormats: 'ignore',
+      unknownFormats: 'ignore', // shows invalid conf warning in ajv 8
+      // /* start of ajv 8 */
+      strictSchema: 'log',
+      // ignoreUnknownFormats: true,
+      // ignoreUnknownKeywords: true,
+      // allowMatchingProperties: true,      
+      allowUnionTypes: true,
+      /* end of ajv 8 */
       allErrors: true,
       // loadSchema,
       ...opts
     });
+    this.ajv.addKeyword('in');
+    this.ajv.addKeyword('explode');
     this.ajv.addKeyword('convert', {
       compile(convert, schema) {
         const fn = convert === true

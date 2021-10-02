@@ -183,7 +183,12 @@ function makeValidator(spec, validator) {
 function throwValidationError(errors, prefix) {
   const details = {};
   const message = errors.map((e) => {
-    if (e.dataPath) {
+    if (e.instancePath) { // for ajv 8+
+      const key = e.instancePath.replace(/^\//, '').replace(/\//, '.');
+      const msg = `${e.message}${e.params && e.params.allowedValues ? ' ' + e.params.allowedValues : ''}`;
+      details[key] = msg;
+      return `[${key}] ${msg}`;
+    } else if (e.dataPath) {
       const key = e.dataPath.replace(/^./, '');
       const msg = `${e.message}${e.params && e.params.allowedValues ? ' ' + e.params.allowedValues : ''}`;
       details[key] = msg;

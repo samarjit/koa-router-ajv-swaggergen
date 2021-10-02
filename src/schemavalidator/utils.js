@@ -170,6 +170,7 @@ function transformType(type) {
 }
 exports.propsToSchema = propsToSchema;
 function propsToSchema(props, options = {}) {
+  // console.log('propsToSchema', props);
   if (props && typeof props === 'string') {
     return { $ref: ref(props) };
   }

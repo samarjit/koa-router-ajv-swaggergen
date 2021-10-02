@@ -242,7 +242,7 @@ router.get('/hello',
           age: {
             description: 'Age in years',
             type: 'integer',
-            minimum: 0
+            minimum: 10
           }
         },
         required: ['firstName', 'lastName']
@@ -273,9 +273,9 @@ router.get('/pet/findByTags', {
         // schema auto generate
         // schema: transformType('array<integer>'),
         // Long format
-        // schema: { type: 'array', items: { type: 'integer' } },
+        schema: { type: 'array', items: { type: 'integer' } },
         // shorthand type: 'array<integer>'
-        type: 'array<integer>',
+        // type: 'array<integer>',
         required: true,
         explode: true,
         description: 'Tags to filter by'
