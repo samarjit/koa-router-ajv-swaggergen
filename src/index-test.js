@@ -187,7 +187,7 @@ router.post('/pet/:petId', {
 }, [(ctx, next) => { ctx.body = { x: 'y' }; next(); },
 (ctx) => { ctx.body = { new: 'body' }; }]);
 
-router.del('/pet/:petId', {
+router.del('/pet/:petId/:api_key', {
   schema: {
     tags: ['pet'],
     summary: 'Deletes a pet',
@@ -270,7 +270,12 @@ router.get('/pet/findByTags', {
     querystring: {
       tags: {
         in: 'query',
-        type: 'array<string>',
+        // schema auto generate
+        // schema: transformType('array<integer>'),
+        // Long format
+        // schema: { type: 'array', items: { type: 'integer' } },
+        // shorthand type: 'array<integer>'
+        type: 'array<integer>',
         required: true,
         explode: true,
         description: 'Tags to filter by'
@@ -278,6 +283,7 @@ router.get('/pet/findByTags', {
     },
     responses: {
       '200': {
+        description: 'successful response',
         content: {
           'application/json': { schema: transformType('array<Pet>') }
         }
@@ -285,7 +291,7 @@ router.get('/pet/findByTags', {
       '400': { description: 'Invalid tag value' }
     }
   }
-}, (ctx) => { ctx.body = [{}]; });
+}, (ctx) => { ctx.body = [{ result: 'scuccess' }]; });
 
 var posts = new Router();
 

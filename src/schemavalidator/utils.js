@@ -183,8 +183,8 @@ function propsToSchema(props, options = {}) {
     const properties = {};
     const requiredArr = options.required || [];
     Object.keys(props).forEach((k) => {
-      const { type, required, ...others } = props[k];
-      const typeObj = transformType(type);
+      const { type, required, schema, ...others } = props[k];
+      const typeObj = schema ? schema : transformType(type);
       properties[k] = extend(true, others, typeObj);
       if (required) {
         requiredArr.push(k);
@@ -299,6 +299,24 @@ function transformSchema(opts, componentSchemas) {
     }
 
     if (parameters.length) {
+      parameters.forEach(_ => {
+        // convert shortcut type to {schema: type: {}}
+        _.schema = _.schema || {}
+        if (_.type) {
+          Object.assign(_.schema, transformType(_.type));
+          delete _.type;
+        }
+        Object.keys(_).forEach(objItm => {
+          if (objItm == 'in' || objItm == 'required' || objItm == 'name' || objItm == 'description' || objItm == 'schema'
+            || objItm === 'explode') return;
+          _.schema[objItm] = _[objItm];
+          delete _[objItm];
+        })
+        // if (_.format) {
+        //   _.schema.format = _.format;
+        //   delete _.format;
+        // }
+      })
       swaggerMethod.parameters = parameters
     }
 
