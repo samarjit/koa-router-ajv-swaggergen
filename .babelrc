@@ -1,0 +1,11 @@
+{
+    "presets": [
+         
+    ],
+    "env": {
+        "debug": {
+            "sourceMaps": "inline",
+            "retainLines": true
+        }
+    }
+}

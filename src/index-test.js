@@ -91,7 +91,7 @@ const bodyJsonSchema = {
     someOtherKey: { type: 'number' },
     requiredKey: {
       type: 'array',
-      maxItems: 3,
+      minItems: 3,
       items: { type: 'integer' }
     },
     nullableKey: { type: ['number', 'null'] }, // or { type: 'number', nullable: true }

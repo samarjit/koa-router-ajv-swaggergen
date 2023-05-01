@@ -1,5 +1,6 @@
 const Ajv = require('ajv');
-const File = require('formidable/lib/file');
+const File = require('formidable').File;
+const moment = require('moment');
 const {
   assert, transformExtends, ref, propsToSchema, loadSchema,
   takeInOptions, transformType,
@@ -8,10 +9,12 @@ const {
 const converts = {
   date: v => moment.utc(v, 'YYYY-MM-DD').toDate(),
   time: v => moment.utc(v, 'HH:mm:ssZ.SSS').toDate(),
-  'date-time': v => moment.utc(v).toDate()
+  'date-time': v => moment.utc(v).toDate(),
 };
 
+// eslint-disable-next-line no-restricted-properties
 const INT32_MIN = -1 * Math.pow(2, 31);
+// eslint-disable-next-line no-restricted-properties
 const INT32_MAX = Math.pow(2, 31) - 1;
 
 class Validator {
@@ -24,12 +27,12 @@ class Validator {
       strictSchema: 'log',
       // ignoreUnknownFormats: true,
       // ignoreUnknownKeywords: true,
-      // allowMatchingProperties: true,      
+      // allowMatchingProperties: true,
       allowUnionTypes: true,
       /* end of ajv 8 */
       allErrors: true,
       // loadSchema,
-      ...opts
+      ...opts,
     });
     this.ajv.addKeyword('in');
     this.ajv.addKeyword('explode');
@@ -45,7 +48,7 @@ class Validator {
           };
         }
         return () => true;
-      }
+      },
     });
     this.ajv.addKeyword('file', {
       compile(checkFile, schema) {
@@ -58,19 +61,19 @@ class Validator {
           };
         }
         return () => true;
-      }
+      },
     });
     this.ajv.addFormat('int32', {
       type: 'number',
       validate(n) {
         return Number.isSafeInteger(n) && n >= INT32_MIN && n <= INT32_MAX;
-      }
+      },
     });
     this.ajv.addFormat('int64', {
       type: 'number',
       validate(n) {
         return Number.isSafeInteger(n);
-      }
+      },
     });
     this.schemas = {};
   }
