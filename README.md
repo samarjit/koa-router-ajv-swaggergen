@@ -3,21 +3,23 @@
 > Thanks to fastify-swagger, fastify-oas, koa-mapper. A lot of inspiration was taken from these libraries
 > Thanks for koa-joi-swagger, and I did take inspiration from this lib as well.
 
-This module does 3 things. This does not reimplement koa-router instead creates wrapper around koa-router. In fact these libraries were inspiration for building this wrapper module.
+This module does 3 things. This does not reimplement official koa-router(@koa/router) or tamper with its functionality, instead creates wrapper around koa-router. So you get validation and api documentation. Most other libraries either do one of the two things or simply requires maintaining separate openapi.yaml. 
 
 1. Define schema while defining router
-2. Schema will be used for validation of queryparams, headers, pathparams, body
-3. Schema will be used for generating openapi 3 json.
+2. This Schema will automatically validate queryparams, headers, pathparams, body using ajv and provide errors in json format.
+3. This Schema generates openapi 3 json.
+4. (optional) Integrates swagger viewer to show the above openapi json
 
 You can open this openapi3 json in http://editor.swagger.io to view the document.
 Optionally you can integrate swagger viewer in your application. Follow the index.js to see how it is done. Following snippet shows the main parts.
 
 ## Quick start Example
 
-Create a new folder test. Run `npm init -y` inside the new folder.
-Run `npm install koa-router-ajv-swaggergen` in your project. 
-Additioally if want to setup swagger viewer
-Run `npm install -D swagger-ui-dist`
+* Create a new folder koa-ajv. Run `npm init -y` inside the new folder.
+* Run `npm i koa @koa/router koa-bodyparser ajv` for installaing peer dependencies.
+* Run `npm install koa-router-ajv-swaggergen` in your project. 
+* Additioally if want to setup swagger viewer
+* Run `npm install -D swagger-ui-dist`
 
 Install peer dependencies if not already part of your project
 Run `npm install koa @koa/router ajv formidable json-schema-resolver qs`
@@ -92,7 +94,7 @@ If you are using yarn 2 add scripts. Run project `yarn dev`
 ```
 
 Open browser http://localhost:3000/prefix/openapi.json
-If you have setup swagger ui viewer open in browser http://localhost:3000/swagger
+If you have setup swagger ui viewer open in browser http://localhost:3000/swagger/ <== dont forget the trailing slash.
 
 ![openapi json](docs/openapijson.jpg)
 ![swagger ui](docs/swagger.jpg)
@@ -104,7 +106,7 @@ If you have setup swagger ui viewer open in browser http://localhost:3000/swagge
 ```js
 const Router = require('@koa/router');
 const Myrouter = require('../../routerwrapper');
-const router = new Myrouter(new Router(), 'prefix'); // prefix is required to access different routes
+const router = new Myrouter(new Router(), 'prefix'); // prefix is required to access different routes. Give some better names like auth, base, home, about etc.
 ```
 
 Now you can use the `router` object like you would use koa-router i.e. even without a schema. But you can add schema which will start showing this route in swagger json and do schema validation.
@@ -125,7 +127,32 @@ router.get('/auth/get-user-profile', {
   ctx.body = '';
 })
 ```
-Now the apidoc json is available at http://localhost:<port>/prefix.openapi.json. You can have other router instances wrapped with a different prefix, and those will be available http://localhost:<port>/anotherprefix.openapi.json.
+
+### Organizing routes through prefixes
+
+A certain group route can be given its own prefix. 
+
+routes
+├──── base.route.js  // prefix base eg. const router = new Myrouter(new Router(), 'base');
+├──── home.route.js  // prefix home eg. const router = new Myrouter(new Router(), 'home');
+└──── auth.route.js  // prefix auth eg. const router = new Myrouter(new Router(), 'auth');
+
+Inside index file
+const baseRoutes = require('./routes/base.route');
+const homeRoutes = require('./routes/home.route');
+const authRoutes = require('./routes/auth.route');
+
+app.use(baseRoutes.routes());
+app.use(homeRoutes.routes());
+app.use(authRoutes.routes());
+ 
+Now the apidoc json is available at http://localhost:<port>/swagger/<prefix>/openapi.json. You can have other router instances wrapped with a different prefix, and those will be available http://localhost:3000/swagger/base/openapi.json as so on.
+
+You open swagger viewer with the below url as search apis with prefixes. 
+http://localhost:3000/swagger/
+
+Enter `<prefix>/openapi.json` in the swagger viewer search box.
+
 
 ### Reusable schema
 You can register schema globally in the router and reuse it in multiple routes
@@ -219,38 +246,85 @@ Integrating swagger viewer is trivial. Get the static distribution instead of se
 ```
 npm install -D swagger-ui-dist
 ```
-Easy way is to use a provided helper method. `Myrouter.setupSwaggerUI(router, 'prefix');`
-
-Here is what this helper function essentially does. 
+Easy way to expose swagger to use a provided helper method. 
 
 ```javascript
-//** This works for npm only which has package.json. For yarn2 refer implementation in src/routerwrapper.js **//
-
-const swaggerUiAssetPath = require("swagger-ui-dist").getAbsoluteFSPath();
-// Mount in your favourite path eg. '/swagger'
-router.get('/swagger', ctx => {
-  ctx.type = 'html';
-  let fileAsString = fs.readFileSync(`${swaggerUiAssetPath}/index.html`);//
-  ctx.body = String(fileAsString).replace(/url\: \"https.*/m, `url: "prefix/openapi.json",`);
-});
-// Following static assets do not recognize relative paths.
-router.get('/swagger/swagger-ui.css', ctx => {
-  ctx.type = "text/css"
-  ctx.body = fs.createReadStream(`${swaggerUiAssetPath}/swagger-ui.css`);
-});
-router.get('/swagger/swagger-ui-bundle.js', ctx => {
-  ctx.type = "application/javascript"
-  ctx.body = fs.createReadStream(`${swaggerUiAssetPath}/swagger-ui-bundle.js`);
-});
-router.get('/swagger/swagger-ui-standalone-preset.js', ctx => {
-  ctx.type = "application/javascript"
-  ctx.body = fs.createReadStream(`${swaggerUiAssetPath}/swagger-ui-standalone-preset.js`);
-});
+Myrouter.setupSwaggerUI(router, 'prefix'); // prefix is the initial, you can have many prefixes, check later sections on managing multiple route prefixes
 ```
 
 Another helper method is there to setup error response generation
 ```
 Myrouter.setupJsonErrors(app);
+```
+
+
+## Typescript support
+
+All the types are derived from AJV. Which causes few annoying issues around nullable:true and requires takes never[]. But if you follow interface based design none of these are of concern.
+The headers, querystring, params supports shortcut propertiesSchema as well as full JsonSchemaType.
+
+```typescript
+import { JSONSchemaType } from "ajv";
+import { PropertiesSchema } from "ajv/dist/types/json-schema"
+...
+interface MyType {
+  foo: number;
+  bar: string;
+}
+
+router.post("/test/:par1/:par2", {
+  schema: {
+    headers: {
+      type: 'object',
+      properties: {
+        'foo': { type: 'string' },
+        'bar': { type: 'number' },
+      },
+      required: ['foo']   // see if you pass MyType interface you dont need to cast to never[]
+    } as JSONSchemaType<MyType>, // This usage is ideal, i.e. by passing interface eg. MyType
+    params: {
+      par1: { type: "string",  nullable: true},
+      par2: { type: "number", nullable: true },
+    } as PropertiesSchema<any>, // pass empty type or else make them explicit interface eg. MyType
+    querystring: {
+      name: { type: "string",  nullable: true},
+      excitement: { type: "number",  nullable: true }
+    }, // Not passing any type behaves like above PropertiesSchema
+    body: {
+      type: 'object',
+      required: [<never> 'requiredKey'], 
+      properties: {
+        someKey: { type: 'string',},
+        someOtherKey: { type: 'number',},
+        requiredKey: {
+          type: 'array',
+          maxItems: 3,
+          items: { type: 'integer'},
+          nullable: true
+        },
+        nullableKey: { type: ['number', 'null']}, // or { type: 'number', nullable: true }
+        multipleTypesKey: { type: ['boolean', 'number']},
+        multipleRestrictedTypesKey: {
+          oneOf: [
+            { type: 'string', maxLength: 5},
+            { type: 'number', minimum: 10 }
+          ],
+        },
+        enumKey: {
+          type: 'string',
+          enum: ['John', 'Foo'],
+        },
+        notTypeKey: {
+          not: { type: 'array', nullable: true },
+        }
+      }
+    }  as JSONSchemaType<{}>,   
+  },
+},
+async (ctx) => {
+  console.log(ctx.body) 
+  ctx.body = { hello: ctx.query.name, excitement: ctx.query.excitement };
+});
 ```
 
 ## For developers of this library
@@ -261,6 +335,10 @@ Open browser at [http://localhost:3000/swagger/](http://localhost:3000/swagger/)
 
 
 ## Release Notes
+2024-01-01:
+  Releasing v1.1.0. Increased feature version.
+  Added type definitions derived from ajv. Updated readme.
+  Removed annoying ajv warning. 
 2023-04-30:
   * Added linting via eslint+babel
   * Updated packages
