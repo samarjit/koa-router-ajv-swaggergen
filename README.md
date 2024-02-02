@@ -335,6 +335,11 @@ Open browser at [http://localhost:3000/swagger/](http://localhost:3000/swagger/)
 
 
 ## Release Notes
+2024-02-02:
+  Added support for @koa/router prefix or context path 
+  `const router = new MyRouter(new Router({ prefix: '/api/mock' }), 'myprefix');`
+  Removed formidable dependency
+  Added simple authorization
 2024-01-01:
   Releasing v1.1.0. Increased feature version.
   Added type definitions derived from ajv. Updated readme.

@@ -1,5 +1,5 @@
 const Ajv = require('ajv');
-const File = require('formidable').File;
+// const File = require('formidable').File;
 const moment = require('moment');
 const {
   assert, transformExtends, ref, propsToSchema, loadSchema,
@@ -55,14 +55,14 @@ class Validator {
     this.ajv.addKeyword({
       keyword: 'file',
       compile(checkFile, schema) {
-        if (checkFile) {
-          return (value) => {
-            if (value && value instanceof File) {
-              return true;
-            }
-            return false;
-          };
-        }
+        // if (checkFile) {
+        //   return (value) => {
+        //     if (value && value instanceof File) {
+        //       return true;
+        //     }
+        //     return false;
+        //   };
+        // }
         return () => true;
       },
     });

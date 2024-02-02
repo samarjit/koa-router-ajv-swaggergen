@@ -291,11 +291,12 @@ function transformSchema(opts, componentSchemas) {
           ],
         );
       } else {
-        const consumesAllFormOnly =
-          consumesFormOnly(schema) || consumesFormOnly(swaggerObject);
-        consumesAllFormOnly
-          ? getFormParams(parameters, (schema.body.type || schema.body.$ref) ? schema.body : { type: 'object', properties: schema.body })
-          : getBodyParams(parameters, (schema.body.type || schema.body.$ref) ? schema.body : { type: 'object', properties: schema.body });
+        '';
+		//const consumesAllFormOnly =
+        //  consumesFormOnly(schema) || consumesFormOnly(swaggerObject);
+        //consumesAllFormOnly
+        //  ? getFormParams(parameters, (schema.body.type || schema.body.$ref) ? schema.body : { type: 'object', properties: schema.body })
+        //  : getBodyParams(parameters, (schema.body.type || schema.body.$ref) ? schema.body : { type: 'object', properties: schema.body });
       }
     }
 
