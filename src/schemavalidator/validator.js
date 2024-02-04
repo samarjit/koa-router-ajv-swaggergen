@@ -22,7 +22,8 @@ class Validator {
     this.ajv = new Ajv({
       coerceTypes: 'array',
       useDefaults: true,
-      unknownFormats: 'ignore', // shows invalid conf warning in ajv 8
+      // unknownFormats: 'ignore',  deprecated// shows invalid conf warning in ajv 8
+      formats: true,
       // /* start of ajv 8 */
       strictSchema: 'log',
       // ignoreUnknownFormats: true,
@@ -36,7 +37,8 @@ class Validator {
     });
     this.ajv.addKeyword('in');
     this.ajv.addKeyword('explode');
-    this.ajv.addKeyword('convert', {
+    this.ajv.addKeyword({
+      keyword: 'convert',
       compile(convert, schema) {
         const fn = convert === true
           ? converts[schema.format]
@@ -50,7 +52,8 @@ class Validator {
         return () => true;
       },
     });
-    this.ajv.addKeyword('file', {
+    this.ajv.addKeyword({
+      keyword: 'file',
       compile(checkFile, schema) {
         if (checkFile) {
           return (value) => {
