@@ -1,6 +1,6 @@
 {
   "name": "koa-router-ajv-swaggergen",
-  "version": "1.3.0",
+  "version": "2.0.0",
   "description": "koa-router wrapper for adding schema for validation and generates swagger(openapi3) json",
   "author": "Samarjit Samanta",
   "license": "MIT",
