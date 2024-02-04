@@ -90,7 +90,7 @@ declare module "koa-router-ajv-swaggergen" {
       post: Handler
       put: Handler
       del: Handler
-      static setupSwaggerUI(router: Router, prefix: string): void
+    //   static setupSwaggerUI(router: Router, prefix: string): void
       static setupJsonErrors(app: any): void
   }
 }
