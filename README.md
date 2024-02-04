@@ -32,7 +32,7 @@ Create index.js file with the below content
 const Koa = require('koa')
 const Router = require('@koa/router');
 const Myrouter = require('koa-router-ajv-swaggergen');
-const setupSwaggerUI = require('koa-router-ajv-swaggergen/util/setupSwaggerUI'); 
+const setupSwaggerUI = require('koa-router-ajv-swaggergen/util/setupSwaggerUI'); // moved to util since v2.0.0
 const router = new Myrouter(new Router(), 'prefix');
 
 const app = new Koa();
@@ -250,7 +250,7 @@ npm install -D swagger-ui-dist
 Easy way to expose swagger to use a provided helper method. 
 
 ```javascript
-const setupSwaggerUI = require('koa-router-ajv-swaggergen/util/setupSwaggerUI'); 
+const setupSwaggerUI = require('koa-router-ajv-swaggergen/util/setupSwaggerUI'); // moved to util since v2.0.0
 setupSwaggerUI(router, 'prefix'); // prefix is the initial, you can have many prefixes, check later sections on managing multiple route prefixes
 ```
 
@@ -338,7 +338,7 @@ Open browser at [http://localhost:3000/swagger/](http://localhost:3000/swagger/)
 
 ## Release Notes
 2024-02-04: v2.0.0
-  Breaking Change introduced - setupSwaggerUI moved to a separate util directory to get rid of swagger-ui-dist dependency.
+  Breaking Change introduced - setupSwaggerUI moved to a separate util directory to get rid of swagger-ui-dist dependency. Often projects can use swagger-ui or swagger-ui-react lib.
 2024-02-02: v1.2.0
   Added support for @koa/router prefix or context path 
   `const router = new MyRouter(new Router({ prefix: '/api/mock' }), 'myprefix');`
