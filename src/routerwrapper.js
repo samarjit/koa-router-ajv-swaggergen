@@ -12,23 +12,50 @@ const flatten = (arr) => Array.isArray(arr)
   ? arr.reduce((a, b) => a.concat(flatten(b)), [])
   : [arr];
 
-function Router(koaRouter, prefix) {
+function Router(koaRouter, prefix, swaggerServerUrl) {
   if (!(this instanceof Router)) {
     return new Router();
   }
   this.swaggerPrefix = prefix;
   this.internalRoutes = [];
   this.router = koaRouter;
+  this.router.prefix(koaRouter.opts.prefix);
   this.validator = new Validator({});
   this.rootDoc = {
     openapi: '3.0.2',
     info: {
-      "title": "Test swagger",
-      "description": "testing the swagger api",
-      "version": "0.1.0"
+      title: `Swagger for ${prefix}`,
+      description: `swagger api ${prefix}`,
+      version: '0.1.0',
     },
     tags: [],
-    servers: [],
+    servers: [{ url: swaggerServerUrl || koaRouter.opts.prefix }],
+    components: {
+      schemas: {
+        securitySchemes: {
+          api_key: {
+            type: 'apiKey',
+            in: 'header',
+            name: 'Authorization',
+          },
+          bearer_auth: {
+            type: 'http',
+            scheme: 'bearer',
+            bearerFormat: 'JWT',
+            in: 'header',
+          },
+          basic_auth: {
+            type: 'http',
+            scheme: 'basic',
+          },
+        },
+      },
+    },
+    security: [
+      { bearer_auth: [] },
+      { basic_auth: [] },
+      { api_key: [] },
+    ],
   };
 
   const router = this.router;
@@ -66,7 +93,14 @@ function Router(koaRouter, prefix) {
       // stack.forEach((layer) => {
       //   extend(true, paths, layer.getPathItem());
       // });
-      ctx.body = { ...rootDoc, paths, components: { schemas } };
+      ctx.body = {
+        ...rootDoc,
+        paths,
+        components: {
+          schemas,
+          securitySchemes: rootDoc.components.schemas.securitySchemes,
+        },
+      };
     };
   }
 
