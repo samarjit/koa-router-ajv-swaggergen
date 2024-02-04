@@ -1,0 +1,43 @@
+{
+  "parserOptions": {
+    "ecmaVersion": 2017,
+    "sourceType": "module"
+  },
+  "extends": "airbnb-base",
+  "plugins": [
+  ],
+  "parser": "@babel/eslint-parser",
+  "rules": {
+    "no-unused-vars": "warn",
+    "no-console": "off",
+    "arrow-body-style": "off",
+    "indent": ["warn", 2],
+    "consistent-return": "off",
+    "no-else-return": "off",
+    "global-require": "off",
+    "no-param-reassign": [
+      "error",
+      {
+        "props": false
+      }
+    ],
+    "new-cap": "off",
+    "arrow-parens": "off",
+    "no-use-before-define": "off",
+    "import/no-cycle": "off",
+    "operator-linebreak": "off",
+    "prefer-object-spread": "off",
+    "max-len": [
+      "error",
+      {
+        "code": 140,
+        "ignoreComments": true,
+        "ignoreStrings": true
+      }
+    ],
+    "no-inner-declarations": "off",
+    "prefer-destructuring":"off"
+  },
+  "env": {
+  }
+}

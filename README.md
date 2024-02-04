@@ -53,11 +53,17 @@ router.get('/',
           excitement: { type: 'integer' }
         }
       },
-      response: {
+      responses: {
         200: {
-          type: 'object',
-          properties: {
-            hello: { type: 'string' }
+          content: {
+            'application/json': {
+              schema:{
+                type: 'object',
+                properties: {
+                  hello: { type: 'string' }
+                }
+              }
+            }
           }
         }
       }
@@ -255,6 +261,11 @@ Open browser at [http://localhost:3000/swagger/](http://localhost:3000/swagger/)
 
 
 ## Release Notes
+2023-04-30:
+  * Added linting via eslint+babel
+  * Updated packages
+  * Fixed documentation of responses
+  * Fixed some eslint issues
 2021-10-02:
   * Added support for ajv 8.x.x, previously it required passing extra options
   * Improved schema generation to update swagger 2.0.x to openapi 3.0.x format. Previously swagger still rendered but with warnings

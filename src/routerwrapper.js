@@ -266,6 +266,23 @@ Router.setupSwaggerUI = (router, defaultPrefix) => {
     ctx.type = "application/javascript"
     ctx.body = fs.readFileSync(require.resolve("swagger-ui-dist/swagger-ui-standalone-preset.js")); //  fs.createReadStream(`${swaggerUiAssetPath}\\swagger-ui-standalone-preset.js`);
   });
+  router.get('/swagger/swagger-initializer.js', ctx => {
+    ctx.type = "application/javascript"
+    ctx.body =  //fs.readFileSync(require.resolve("swagger-ui-dist/swagger-initializer.js")); //  fs.createReadStream(`${swaggerUiAssetPath}\\swagger-ui-standalone-preset.js`);
+    `window.ui = SwaggerUIBundle({
+      url: "${defaultPrefix}/openapi.json",
+      dom_id: '#swagger-ui',
+      deepLinking: true,
+      presets: [
+        SwaggerUIBundle.presets.apis,
+        SwaggerUIStandalonePreset
+      ],
+      plugins: [
+        SwaggerUIBundle.plugins.DownloadUrl
+      ],
+      layout: "StandaloneLayout"
+    });`
+  });
 }
 Router.setupJsonErrors = (app) => {
   app.use((ctx, next) => {

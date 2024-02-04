@@ -1,10 +1,15 @@
+/* eslint-disable no-shadow */
+/* eslint-disable no-plusplus */
+/* eslint-disable no-unused-expressions */
+/* eslint-disable default-case */
+/* eslint-disable no-restricted-syntax */
 const fs = require('fs');
 const qs = require('qs');
 
 // const fetch = require('node-fetch');
 // const _ = require('lodash')
 // const debug = require('debug')('koa-mapper');
-const Ref = require('json-schema-resolver')
+const Ref = require('json-schema-resolver');
 
 // const extend = require('extend');
 exports.extend = extend;
@@ -12,7 +17,7 @@ exports.extend = extend;
 function extend(unused, current, updates) {
   for (key of Object.keys(updates)) {
     if (!current.hasOwnProperty(key) || typeof updates[key] !== 'object') current[key] = updates[key];
-    else if (current[key] instanceof Array && updates[key] instanceof Array) current[key] = current[key].concat(updates[key])
+    else if (current[key] instanceof Array && updates[key] instanceof Array) current[key] = current[key].concat(updates[key]);
     else extend('', current[key], updates[key]);
   }
   return current;
@@ -68,17 +73,17 @@ function takeInOptions(opts, key) {
     path: ['summary', 'description'],
     method: [
       'tags', 'summary', 'description', 'externalDocs', 'responses',
-      'callbacks', 'deprecated', 'security', 'servers', 'requestBody'
+      'callbacks', 'deprecated', 'security', 'servers', 'requestBody',
     ],
     schema: [
       'items', 'title', 'multipleOf', 'maximum', 'exclusiveMaximum', 'minimum',
       'exclusiveMinimum', 'maxLength', 'minLength', 'pattern', 'maxItems', 'minItems',
-      'uniqueItems', 'maxProperties', 'minProperties', 'enum', 'default', 'format'
+      'uniqueItems', 'maxProperties', 'minProperties', 'enum', 'default', 'format',
     ],
     param: [
       'name', 'in', 'description', 'required', 'deprecated', 'allowEmptyValue',
-      'style', 'explode', 'allowReserved', 'schema', 'example', 'examples'
-    ]
+      'style', 'explode', 'allowReserved', 'schema', 'example', 'examples',
+    ],
   };
   const obj = {};
   map[key].forEach((k) => {
@@ -101,7 +106,7 @@ function ref(name) {
 
 function getMixType(type) {
   const types = {
-    file: { type: 'object', file: true }
+    file: { type: 'object', file: true },
   };
   TYPES.forEach((t) => {
     types[t] = { type: t };
@@ -162,7 +167,7 @@ function transformType(type) {
     }
     return {
       type: 'array',
-      items: getMixType(str)
+      items: getMixType(str),
     };
   } else {
     return getMixType(type);
@@ -184,8 +189,10 @@ function propsToSchema(props, options = {}) {
     const properties = {};
     const requiredArr = options.required || [];
     Object.keys(props).forEach((k) => {
-      const { type, required, schema, ...others } = props[k];
-      const typeObj = schema ? schema : transformType(type);
+      const {
+        type, required, schema, ...others
+      } = props[k];
+      const typeObj = schema || transformType(type);
       properties[k] = extend(true, others, typeObj);
       if (required) {
         requiredArr.push(k);
@@ -221,41 +228,41 @@ const isURL = s => /^https?:\/\//gi.test(s);
 function transformSchema(opts, componentSchemas) {
   const swaggerObject = {
     definitions: componentSchemas,
-  }
+  };
   const externalSchemas = []; // Object.keys(componentSchemas).map(i => { return { $id: i, ...componentSchemas[i] }; }); // Array.from(sharedSchemasMap.values())
-  const ref = Ref({ clone: true, applicationUri: 'todo.com', externalSchemas })
+  const ref = Ref({ clone: true, applicationUri: 'todo.com', externalSchemas });
 
   const transform = opts.transform;
 
   const schema = transform
     ? transform(opts.schema)
-    : opts.schema
-  let path = opts.path;
-  const url = formatParamUrl(path)
+    : opts.schema;
+  const path = opts.path;
+  const url = formatParamUrl(path);
 
-  swaggerObject.paths = {}
-  const swaggerRoute = swaggerObject.paths[url] || {}
+  swaggerObject.paths = {};
+  const swaggerRoute = swaggerObject.paths[url] || {};
 
-  const swaggerMethod = {}
-  const parameters = []
+  const swaggerMethod = {};
+  const parameters = [];
 
   // route.method should be either a String, like 'POST', or an Array of Strings, like ['POST','PUT','PATCH']
-  const methods = typeof opts.method === 'string' ? [opts.method] : opts.method
+  const methods = typeof opts.method === 'string' ? [opts.method] : opts.method;
 
-  for (var method of methods) {
+  for (const method of methods) {
     let methodWithDelete = method.toLowerCase();
     if (methodWithDelete === 'del') {
-      methodWithDelete = 'delete'
+      methodWithDelete = 'delete';
     }
-    swaggerRoute[methodWithDelete] = swaggerMethod
+    swaggerRoute[methodWithDelete] = swaggerMethod;
   }
 
   if (schema) {
     if (schema.querystring) {
-      getQueryParams(parameters, schema.querystring)
+      getQueryParams(parameters, schema.querystring);
     }
     if (schema.summary) {
-      swaggerMethod.summary = schema.summary
+      swaggerMethod.summary = schema.summary;
     }
 
     if (schema.description) {
@@ -274,221 +281,221 @@ function transformSchema(opts, componentSchemas) {
       if (true /* openapi */) {
         // // openapi
         swaggerMethod.requestBody = {};
-        genBody(swaggerMethod.requestBody,
+        genBody(
+          swaggerMethod.requestBody,
           (schema.body.type || schema.body.$ref) ? schema.body : { type: 'object', properties: schema.body },
           schema.consumes ||
           [
             'application/json',
             'application/x-www-form-urlencoded',
-          ]
+          ],
         );
       } else {
         const consumesAllFormOnly =
-          consumesFormOnly(schema) || consumesFormOnly(swaggerObject)
+          consumesFormOnly(schema) || consumesFormOnly(swaggerObject);
         consumesAllFormOnly
           ? getFormParams(parameters, (schema.body.type || schema.body.$ref) ? schema.body : { type: 'object', properties: schema.body })
-          : getBodyParams(parameters, (schema.body.type || schema.body.$ref) ? schema.body : { type: 'object', properties: schema.body })
+          : getBodyParams(parameters, (schema.body.type || schema.body.$ref) ? schema.body : { type: 'object', properties: schema.body });
       }
     }
 
     if (schema.params) {
-      getPathParams(parameters, schema.params)
+      getPathParams(parameters, schema.params);
     }
 
     if (schema.headers) {
-      getHeaderParams(parameters, schema.headers)
+      getHeaderParams(parameters, schema.headers);
     }
 
     if (parameters.length) {
       parameters.forEach(_ => {
         // convert shortcut type to {schema: type: {}}
-        _.schema = _.schema || {}
+        _.schema = _.schema || {};
         if (_.type) {
           Object.assign(_.schema, transformType(_.type));
           delete _.type;
         }
         Object.keys(_).forEach(objItm => {
-          if (objItm == 'in' || objItm == 'required' || objItm == 'name' || objItm == 'description' || objItm == 'schema'
+          if (objItm === 'in' || objItm === 'required' || objItm === 'name' || objItm === 'description' || objItm === 'schema'
             || objItm === 'explode') return;
           _.schema[objItm] = _[objItm];
           delete _[objItm];
-        })
+        });
         // if (_.format) {
         //   _.schema.format = _.format;
         //   delete _.format;
         // }
-      })
-      swaggerMethod.parameters = parameters
+      });
+      swaggerMethod.parameters = parameters;
     }
 
     if (schema.deprecated) {
-      swaggerMethod.deprecated = schema.deprecated
+      swaggerMethod.deprecated = schema.deprecated;
     }
 
     if (schema.security) {
-      swaggerMethod.security = schema.security
+      swaggerMethod.security = schema.security;
     }
 
     for (const key of Object.keys(schema)) {
       if (key.startsWith('x-')) {
-        swaggerMethod[key] = schema[key]
+        swaggerMethod[key] = schema[key];
       }
     }
   }
 
-  swaggerMethod.responses = schema.responses ? schema.responses : genResponse(null)
+  swaggerMethod.responses = schema.responses ? schema.responses : genResponse(null);
 
-  swaggerObject.paths[url] = swaggerRoute
+  swaggerObject.paths[url] = swaggerRoute;
   return swaggerObject.paths;
 
-
   function getBodyParams(parameters, body) {
-    const bodyResolved = ref.resolve(body)
+    const bodyResolved = ref.resolve(body);
 
-    const param = {}
-    param.name = 'body'
-    param.in = 'body'
-    param.schema = bodyResolved
-    parameters.push(param)
+    const param = {};
+    param.name = 'body';
+    param.in = 'body';
+    param.schema = bodyResolved;
+    parameters.push(param);
   }
 
   function getFormParams(parameters, form) {
-    const resolved = ref.resolve(form)
-    const add = plainJsonObjectToSwagger2('formData', resolved, swaggerObject.definitions)
-    add.forEach(_ => parameters.push(_))
+    const resolved = ref.resolve(form);
+    const add = plainJsonObjectToSwagger2('formData', resolved, swaggerObject.definitions);
+    add.forEach(_ => parameters.push(_));
   }
 
   function getQueryParams(parameters, query) {
-    const resolved = ref.resolve(query)
-    const add = plainJsonObjectToSwagger2('query', resolved, swaggerObject.definitions)
-    add.forEach(_ => parameters.push(_))
+    const resolved = ref.resolve(query);
+    const add = plainJsonObjectToSwagger2('query', resolved, swaggerObject.definitions);
+    add.forEach(_ => parameters.push(_));
   }
 
   function getPathParams(parameters, path) {
-    const resolved = ref.resolve(path)
-    const add = plainJsonObjectToSwagger2('path', resolved, swaggerObject.definitions)
-    add.forEach(_ => parameters.push(_))
+    const resolved = ref.resolve(path);
+    const add = plainJsonObjectToSwagger2('path', resolved, swaggerObject.definitions);
+    add.forEach(_ => parameters.push(_));
   }
 
   function getHeaderParams(parameters, headers) {
-    const resolved = ref.resolve(headers)
-    const add = plainJsonObjectToSwagger2('header', resolved, swaggerObject.definitions)
-    add.forEach(_ => parameters.push(_))
+    const resolved = ref.resolve(headers);
+    const add = plainJsonObjectToSwagger2('header', resolved, swaggerObject.definitions);
+    add.forEach(_ => parameters.push(_));
   }
 }
 
 function consumesFormOnly(schema) {
-  const consumes = schema.consumes
+  const consumes = schema.consumes;
   return (
     consumes &&
     consumes.length === 1 &&
     (consumes[0] === 'application/x-www-form-urlencoded' ||
       consumes[0] === 'multipart/form-data')
-  )
+  );
 }
 function formatParamUrl(url) {
-  var start = url.indexOf('/:')
-  if (start === -1) return url
+  let start = url.indexOf('/:');
+  if (start === -1) return url;
 
-  var end = url.indexOf('/', ++start)
+  const end = url.indexOf('/', ++start);
 
   if (end === -1) {
-    return url.slice(0, start) + '{' + url.slice(++start) + '}'
+    return `${url.slice(0, start)}{${url.slice(++start)}}`;
   } else {
-    return formatParamUrl(url.slice(0, start) + '{' + url.slice(++start, end) + '}' + url.slice(end))
+    return formatParamUrl(`${url.slice(0, start)}{${url.slice(++start, end)}}${url.slice(end)}`);
   }
 }
 function plainJsonObjectToSwagger2(container, jsonSchema, externalSchemas) {
-  const obj = localRefResolve(jsonSchema, externalSchemas)
-  let toSwaggerProp
+  const obj = localRefResolve(jsonSchema, externalSchemas);
+  let toSwaggerProp;
   switch (container) {
-    case 'query':
-      toSwaggerProp = function (properyName, jsonSchemaElement) {
-        jsonSchemaElement.in = container
-        jsonSchemaElement.name = properyName
-        return jsonSchemaElement
-      }
-      break
-    case 'formData':
-      toSwaggerProp = function (properyName, jsonSchemaElement) {
-        delete jsonSchemaElement.$id
-        jsonSchemaElement.in = container
-        jsonSchemaElement.name = properyName
+  case 'query':
+    toSwaggerProp = function (properyName, jsonSchemaElement) {
+      jsonSchemaElement.in = container;
+      jsonSchemaElement.name = properyName;
+      return jsonSchemaElement;
+    };
+    break;
+  case 'formData':
+    toSwaggerProp = function (properyName, jsonSchemaElement) {
+      delete jsonSchemaElement.$id;
+      jsonSchemaElement.in = container;
+      jsonSchemaElement.name = properyName;
 
-        // https://json-schema.org/understanding-json-schema/reference/non_json_data.html#contentencoding
-        if (jsonSchemaElement.contentEncoding === 'binary') {
-          delete jsonSchemaElement.contentEncoding // Must be removed
-          jsonSchemaElement.type = 'file'
-        }
+      // https://json-schema.org/understanding-json-schema/reference/non_json_data.html#contentencoding
+      if (jsonSchemaElement.contentEncoding === 'binary') {
+        delete jsonSchemaElement.contentEncoding; // Must be removed
+        jsonSchemaElement.type = 'file';
+      }
 
-        return jsonSchemaElement
-      }
-      break
-    case 'path':
-      toSwaggerProp = function (properyName, jsonSchemaElement) {
-        jsonSchemaElement.in = container
-        jsonSchemaElement.name = properyName
-        jsonSchemaElement.required = true
-        return jsonSchemaElement
-      }
-      break
-    case 'header':
-      toSwaggerProp = function (properyName, jsonSchemaElement) {
-        return {
-          in: 'header',
-          name: properyName,
-          required: jsonSchemaElement.required,
-          description: jsonSchemaElement.description,
-          type: jsonSchemaElement.type
-        }
-      }
-      break
+      return jsonSchemaElement;
+    };
+    break;
+  case 'path':
+    toSwaggerProp = function (properyName, jsonSchemaElement) {
+      jsonSchemaElement.in = container;
+      jsonSchemaElement.name = properyName;
+      jsonSchemaElement.required = true;
+      return jsonSchemaElement;
+    };
+    break;
+  case 'header':
+    toSwaggerProp = function (properyName, jsonSchemaElement) {
+      return {
+        in: 'header',
+        name: properyName,
+        required: jsonSchemaElement.required,
+        description: jsonSchemaElement.description,
+        type: jsonSchemaElement.type,
+      };
+    };
+    break;
   }
 
   return Object.keys(obj).reduce((acc, propKey) => {
-    acc.push(toSwaggerProp(propKey, obj[propKey]))
-    return acc
-  }, [])
+    acc.push(toSwaggerProp(propKey, obj[propKey]));
+    return acc;
+  }, []);
 }
 function localRefResolve(jsonSchema, externalSchemas) {
   if (jsonSchema.type && jsonSchema.properties) {
     // for the shorthand querystring/params/headers declaration
     const propertiesMap = Object.keys(jsonSchema.properties).reduce((acc, h) => {
-      const required = (jsonSchema.required && jsonSchema.required.indexOf(h) >= 0) || false
-      const newProps = Object.assign({}, jsonSchema.properties[h], { required })
-      return Object.assign({}, acc, { [h]: newProps })
-    }, {})
+      const required = (jsonSchema.required && jsonSchema.required.indexOf(h) >= 0) || false;
+      const newProps = Object.assign({}, jsonSchema.properties[h], { required });
+      return Object.assign({}, acc, { [h]: newProps });
+    }, {});
 
-    return propertiesMap
+    return propertiesMap;
   } else if (!jsonSchema.$ref) {
     return jsonSchema;
   }
 
   // $ref is in the format: #/definitions/<resolved definition>/<optional fragment>
-  const localReference = jsonSchema.$ref.split('/')[3]
-  return localRefResolve(externalSchemas[localReference], externalSchemas)
+  const localReference = jsonSchema.$ref.split('/')[3];
+  return localRefResolve(externalSchemas[localReference], externalSchemas);
 }
 function genResponse(fastifyResponseJson) {
   // if the user does not provided an out schema
   if (!fastifyResponseJson) {
-    return { 200: { description: 'Default Response' } }
+    return { 200: { description: 'Default Response' } };
   }
 
-  const responsesContainer = {}
+  const responsesContainer = {};
 
   Object.keys(fastifyResponseJson).forEach(key => {
     // 2xx is not supported by swagger
 
-    const rawJsonSchema = fastifyResponseJson[key]
-    const resolved = ref.resolve(rawJsonSchema)
+    const rawJsonSchema = fastifyResponseJson[key];
+    const resolved = ref.resolve(rawJsonSchema);
 
     responsesContainer[key] = {
       schema: resolved,
-      description: 'Default Response'
-    }
-  })
+      description: 'Default Response',
+    };
+  });
 
-  return responsesContainer
+  return responsesContainer;
 }
 
 // openapi3
@@ -514,7 +521,7 @@ function genBody(dst, src, consumes) {
           res[name] = rest;
           return res;
         },
-        {}
+        {},
       );
       delete body.examples;
     } else if (body.example) {
@@ -523,7 +530,7 @@ function genBody(dst, src, consumes) {
     }
     dst.content[mediaType].schema = (body);
   }
-};
+}
 
 function convertSchemaTypes(schema) {
   const obj = schema;
@@ -549,10 +556,10 @@ function convertSchemaTypes(schema) {
 
 function transformSchemaOld(opts) {
   const { params, body } = opts.schema;
-  let parameters = []
-  let operations = opts.method
-  let tmp = {}
-  let path = opts.path;
+  const parameters = [];
+  const operations = opts.method;
+  let tmp = {};
+  const path = opts.path;
   const inPath = {};
   // query-path start
   if (params) {
@@ -568,9 +575,9 @@ function transformSchemaOld(opts) {
         name,
         in: 'path',
         required: !key.optional,
-        schema: { type: 'string' }
+        schema: { type: 'string' },
       });
-    })
+    });
   }
 
   // .map((key, index) => {
@@ -618,7 +625,7 @@ function transformSchemaOld(opts) {
       const map = {
         json: 'application/json',
         form: 'application/x-www-form-urlencoded',
-        multipart: 'multipart/form-data'
+        multipart: 'multipart/form-data',
       };
       const bodyType = opts.bodyType || ['json', 'form'];
       const requestBody = { content: {} };
