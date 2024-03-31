@@ -337,7 +337,7 @@ Open browser at [http://localhost:3000/swagger/](http://localhost:3000/swagger/)
 
 
 ## Release Notes
-2024-02-04: v2.0.1
+2024-03-31: v2.0.1
   Minor bugfix for making context path optional. Also added typescript [example project](examples/ts-project/).
 2024-02-04: v2.0.0
   Breaking Change introduced - setupSwaggerUI moved to a separate util directory to get rid of swagger-ui-dist dependency. Often projects can use swagger-ui or swagger-ui-react lib.
