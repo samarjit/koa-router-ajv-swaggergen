@@ -2,29 +2,31 @@
 
 const Koa = require('koa');
 const Router = require('@koa/router');
-const Myrouter = require('./routerwrapper')
+const fs = require('fs');
+const bodyParser = require('koa-bodyparser');
+const cors = require('@koa/cors');
+const Myrouter = require('./routerwrapper');
+const setupSwaggerUI = require('../util/setupSwaggerUI');
+const { transformType } = require('./schemavalidator/utils');
+
 const app = new Koa();
 // const router = new Router();
-const router = new Myrouter(new Router(), 'prefix');
-const { transformType } = require('./schemavalidator/utils');
-const cors = require('@koa/cors');
-const bodyParser = require('koa-bodyparser');
-const fs = require('fs')
+const router = new Myrouter(new Router({ prefix: '/api/' }), 'testprefix');
 
-const swaggerUiAssetPath = require("swagger-ui-dist").getAbsoluteFSPath()
+// const swaggerUiAssetPath = require("swagger-ui-dist").getAbsoluteFSPath()
 
 // Koa-router won't execute a middleware if there's no matching route.
 app.use(cors());
 app.use(bodyParser());
 
-console.log(swaggerUiAssetPath);
+// console.log(swaggerUiAssetPath);
 // fs.mkdir('./temp-public', () => { console.log('dir created'); })
 // fs.readdirSync(swaggerUiAssetPath).forEach(function (childItemName) {
 
 //   fs.copyFileSync(`${swaggerUiAssetPath}\\${childItemName}`, './temp-public/');
 // });
 Myrouter.setupJsonErrors(router);
-Myrouter.setupSwaggerUI(router, 'prefix');
+setupSwaggerUI(router, 'testprefix');
 
 router.use('/', async (ctx, next) => {
   console.log('middle req set');

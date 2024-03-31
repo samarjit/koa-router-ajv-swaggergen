@@ -1,0 +1,26 @@
+{
+  "name": "ts-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "npx ts-node indexkoa.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "koa-router-ajv-swaggergen": "file:../../",
+    "koa": "^2.13.0",
+    "@koa/router": "^9.4.0",
+    "koa-bodyparser": "^4.3.0",
+    "koa-logger": "^3.2.1",
+    "ajv": "^8.12.0"
+  },
+  "devDependencies": {
+    "@types/koa": "^2.13.0",
+    "@types/koa-bodyparser": "^4.3.0",
+    "@types/node": "^20.10.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"}
+}

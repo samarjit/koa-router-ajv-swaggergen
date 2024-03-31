@@ -19,7 +19,7 @@ function Router(koaRouter, prefix, swaggerServerUrl) {
   this.swaggerPrefix = prefix;
   this.internalRoutes = [];
   this.router = koaRouter;
-  this.router.prefix(koaRouter.opts.prefix);
+  this.router.prefix(koaRouter.opts.prefix || '/');
   this.validator = new Validator({});
   this.rootDoc = {
     openapi: '3.0.2',
